@@ -1,4 +1,4 @@
-Sub Ajouter_Note_Bas_De_Page_Apres_Selection() 04.-Add-Anchor-Word-Footnote-With-Phrase-Page-Date-Hour
+Sub Ajouter_Note_Bas_De_Page_Apres_Selection()
     Dim oDoc As Object
     Dim oText As Object
     Dim oViewCursor As Object
