@@ -1,0 +1,76 @@
+Sub Ajouter_Note_Bas_De_Page_Apres_Selection()
+    Dim oDoc As Object
+    Dim oText As Object
+    Dim oViewCursor As Object
+    Dim oTextCursor As Object
+    Dim oFootnote As Object
+    Dim oFootnoteText As Object
+    Dim oFootnoteCursor As Object
+    Dim sSelection As String
+    Dim sMotMajuscule As String
+    Dim sPhrase As String
+    Dim sNomDocument As String
+    Dim nPage As Long
+    Dim sDate As String, sHeure As String, sDateHeure As String
+    Dim sSuffixe As String
+    Dim sNoteTexte As String
+
+    ' Préparation du document et curseur
+    oDoc = ThisComponent
+    oText = oDoc.Text
+    oViewCursor = oDoc.CurrentController.getViewCursor()
+
+    If oViewCursor.isCollapsed() Then
+        MsgBox "Veuillez sélectionner un mot ou une phrase.", 16, "Avertissement"
+        Exit Sub
+    End If
+
+    ' Récupérer le texte sélectionné
+    sSelection = Trim(oViewCursor.getString())
+    If sSelection = "" Then
+        MsgBox "Sélection vide.", 16, "Erreur"
+        Exit Sub
+    End If
+
+    ' Majuscule initiale
+    sMotMajuscule = UCase(Left(sSelection, 1)) & Mid(sSelection, 2)
+
+    ' Extraire la phrase complète
+    oTextCursor = oText.createTextCursorByRange(oViewCursor.getStart())
+    oTextCursor.gotoStartOfSentence(False)
+    oTextCursor.gotoEndOfSentence(True)
+    sPhrase = Trim(oTextCursor.getString())
+
+    ' Titre document
+    sNomDocument = oDoc.Title
+    If sNomDocument = "" Then sNomDocument = "Document sans titre"
+
+    ' Obtenir numéro de page
+    oViewCursor.gotoRange(oViewCursor.getEnd(), False) ' Position après sélection
+    nPage = oViewCursor.getPage()
+
+    ' Date et heure
+    sDate = Format(Date, "DD-MM-YYYY")
+    sHeure = Format(Time, "HH:MM:SS")
+    sDateHeure = sDate & " " & sHeure
+
+    ' Construire le contenu de la note
+    sSuffixe = " - (.): . SIN: . ANT: . TL: «». T: . F: . M: . P: . D: ."
+    sNoteTexte = sMotMajuscule & " : " & sSuffixe
+    sNoteTexte = Replace(sNoteTexte, "F: .", "F: " & sPhrase)
+    sNoteTexte = Replace(sNoteTexte, "M: .", "M: " & sNomDocument & ".")
+    sNoteTexte = Replace(sNoteTexte, "P: .", "P: " & nPage & ".")
+    sNoteTexte = Replace(sNoteTexte, "D: .", "D: " & sDateHeure & ".")
+
+    ' Insérer la note de bas de page juste après le mot sélectionné
+    oViewCursor.collapseToEnd() ' Positionner après la sélection
+    oFootnote = oDoc.createInstance("com.sun.star.text.Footnote")
+    oText.insertTextContent(oViewCursor, oFootnote, False)
+
+    ' Insérer le texte dans la note
+    oFootnoteText = oFootnote.getText()
+    oFootnoteCursor = oFootnoteText.createTextCursor()
+    oFootnoteText.insertString(oFootnoteCursor, sNoteTexte, False)
+
+    MsgBox "Note ajoutée après le mot sélectionné.", 64, "Succès"
+End Sub
