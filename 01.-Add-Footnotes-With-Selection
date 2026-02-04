@@ -1,0 +1,40 @@
+Sub CopyToFootnote_ApresSelection()
+    Dim oDoc As Object
+    Dim oText As Object
+    Dim oCursor As Object
+    Dim oSelectedText As String
+    Dim sTexteNote As String
+    Dim oFootnote As Object
+    Dim oFootnoteText As Object
+    Dim oFootnoteCursor As Object
+
+    oDoc = ThisComponent
+    oText = oDoc.Text
+    oCursor = oDoc.CurrentController.getViewCursor()
+
+    If oCursor.isCollapsed() Then
+        MsgBox "Veuillez sélectionner un mot ou une phrase avant d'exécuter la macro.", 16, "Avertissement"
+        Exit Sub
+    End If
+
+    ' Récupère le texte sélectionné
+    oSelectedText = Trim(oCursor.getString())
+    If oSelectedText = "" Then Exit Sub
+
+    ' Préparer le texte pour la note : Majuscule + :
+    sTexteNote = UCase(Left(oSelectedText, 1)) & Mid(oSelectedText, 2) & " : "
+
+    ' Place le curseur juste après la sélection
+    oCursor.collapseToEnd()
+
+    ' Crée et insère la note de bas de page
+    oFootnote = oDoc.createInstance("com.sun.star.text.Footnote")
+    oText.insertTextContent(oCursor, oFootnote, False)
+
+    ' Insère le texte dans la note
+    oFootnoteText = oFootnote.getText()
+    oFootnoteCursor = oFootnoteText.createTextCursor()
+    oFootnoteText.insertString(oFootnoteCursor, sTexteNote, False)
+
+    MsgBox "Texte copié en note de bas de page avec majuscule et deux points.", 64, "Succès"
+End Sub
